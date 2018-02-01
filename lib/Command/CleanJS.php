@@ -1,6 +1,7 @@
 <?php
+declare(strict_types=1);
 /**
- * @copyright Copyright (c) 2018, Roeland Jago Douma <roeland@famdouma.nl>
+ * @copyright Copyright (c) 2016, Roeland Jago Douma <roeland@famdouma.nl>
  *
  * @author Roeland Jago Douma <roeland@famdouma.nl>
  *
@@ -25,6 +26,8 @@ namespace OCA\AppDataCleaner\Command;
 use OC\Files\AppData\Factory;
 use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
+use OCP\ICache;
+use OCP\ICacheFactory;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -34,10 +37,15 @@ class CleanJS extends Command {
 	/** @var IAppData */
 	private $appData;
 
-	public function __construct(Factory $appDataFactory) {
+	/** @var ICache */
+	private $cache;
+
+	public function __construct(Factory $appDataFactory,
+								ICacheFactory $cacheFactory) {
 		parent::__construct();
 
 		$this->appData = $appDataFactory->get('js');
+		$this->cache = $cacheFactory->createDistributed('JS');
 	}
 
 	public function configure() {
@@ -65,6 +73,9 @@ class CleanJS extends Command {
 		}
 
 		foreach ($dirs as $dir) {
+			//Clear the memcache
+			$this->cache->clear($dir->getName());
+
 			$files = $dir->getDirectoryListing();
 			foreach ($files as $file) {
 				$file->delete();

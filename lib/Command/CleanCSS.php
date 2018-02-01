@@ -63,6 +63,7 @@ class CleanCSS extends Command {
 		$app = $input->getArgument('app');
 
 		if ($app === null) {
+			$this->cache->clear();
 			$dirs = $this->appData->getDirectoryListing();
 		} else {
 			try {
